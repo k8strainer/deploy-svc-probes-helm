@@ -1,16 +1,27 @@
 # deploy-svc-probes
 
-This chart is a Helm-ified version of deploy-svc-probes-resources.yaml and included configmaps:
+Helm chart for deploying an Apache httpd Deployment, Service, and two ConfigMaps:
 
 - `deploy-svc-probes-resources.yaml` (Service + Deployment)
 - `cm-deploy-svc-probes.yaml` (ConfigMap `ext-checker-config`)
 - `cm-httpd-conf.yaml` (ConfigMap `cm-httpd-conf` containing `httpd.conf`)
 
-## Install
+## Prerequisites
+
+- Kubernetes or OpenShift cluster
+- Helm 3.x
+- Access to the target namespace
+- Container images reachable from the cluster
+
+
+## Install from GitHub
+
+Clone the repository and install the chart from the local directory:
 
 ```bash
-helm install my-release ./deploy-svc-probes -n my-namespace --create-namespace
-```
+git clone https://github.com/k8strainer/deploy-svc-probes-helm.git
+cd deploy-svc-probes-helm
+helm install my-release . -n my-namespace --create-namespace
 
 ## Keep the original resource names
 
