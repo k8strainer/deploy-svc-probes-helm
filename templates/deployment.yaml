@@ -31,6 +31,9 @@ spec:
     metadata:
       labels:
         {{- include "deploy-svc-probes.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/ext-checker-config: {{ include (print $.Template.BasePath "/configmap-ext-checker.yaml") . | sha256sum }}
+        checksum/httpd-conf: {{ include (print $.Template.BasePath "/configmap-httpd-conf.yaml") . | sha256sum }}
       {{- with .Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
