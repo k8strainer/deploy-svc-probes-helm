@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "deploy-svc-probes.fullname" . }}
+  labels:
+    {{- include "deploy-svc-probes.commonLabels" . | nindent 4 }}
+  {{- if .Values.reloader.enabled }}
+  annotations:
+    {{- if .Values.reloader.auto }}
+    reloader.stakater.com/auto: "true"
+    {{- end }}
+    {{- if .Values.reloader.configmapReload }}
+    configmap.reloader.stakater.com/reload: {{ .Values.reloader.configmapReload | quote }}
+    {{- end }}
+    {{- if .Values.reloader.secretReload }}
+    secret.reloader.stakater.com/reload: {{ .Values.reloader.secretReload | quote }}
+    {{- end }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  minReadySeconds: 0
+  selector:
+    matchLabels:
+      {{- include "deploy-svc-probes.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        {{- include "deploy-svc-probes.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.readinessGates }}
+      readinessGates:
+        {{- range .Values.readinessGates }}
+        - conditionType: {{ . | quote }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: ext-checker
+          image: "{{ .Values.images.extChecker.repository }}:{{ .Values.images.extChecker.tag }}"
+          imagePullPolicy: {{ .Values.images.extChecker.pullPolicy }}
+          command:
+            {{- toYaml .Values.extChecker.command | nindent 12 }}
+          env:
+            - name: EXTERNAL_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "deploy-svc-probes.extCheckerConfigMapName" . }}
+                  key: EXTERNAL_URL
+            - name: TARGET_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "deploy-svc-probes.extCheckerConfigMapName" . }}
+                  key: TARGET_URL
+          resources:
+            {{- toYaml .Values.extChecker.resources | nindent 12 }}
+
+        - name: httpd-dep
+          image: "{{ .Values.images.httpd.repository }}:{{ .Values.images.httpd.tag }}"
+          imagePullPolicy: {{ .Values.images.httpd.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.httpd.containerPort }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.httpd.resources | nindent 12 }}
+          {{- if .Values.httpd.livenessProbe.enabled }}
+          livenessProbe:
+            {{- omit .Values.httpd.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.httpd.readinessProbe.enabled }}
+          readinessProbe:
+            {{- omit .Values.httpd.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: {{ .Values.httpdConf.mountPath }}
+              subPath: {{ .Values.httpdConf.subPath }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "deploy-svc-probes.httpdConfConfigMapName" . }}

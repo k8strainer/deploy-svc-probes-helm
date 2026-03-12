@@ -1,0 +1,22 @@
+1) Dieser Chart rollt ein Apache httpd Deployment und einen Service (LB) aus.
+
+2) Default install:
+helm install <release-name> ./deploy-svc-probes -n default
+
+
+3) Installation mit Namen die kompatibel zum nicht-Helm basierten rollout sind:
+helm install httpd-dep-1 . -n default \
+  --set fullnameOverride=httpd-dep-1 \
+  --set extChecker.configMapName=ext-checker-config \
+  --set httpd.configMapName=cm-httpd-conf
+
+4) Upgrades per:
+helm upgrade --install <release-name> ./deploy-svc-probes -n default
+
+
+5) Check resources:
+kubectl get deploy,rs,pods,svc,cm -l app.kubernetes.io/instance=<release-name>
+
+6) Uninstall:
+helm uninstall <release-name>
+

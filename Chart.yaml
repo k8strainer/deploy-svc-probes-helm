@@ -1,0 +1,6 @@
+apiVersion: v2
+name: deploy-svc-probes
+description: Example chart that deploys an Apache httpd Deployment + Service and two ConfigMaps (httpd.conf + external checker config)
+type: application
+version: 0.1.0
+appVersion: "2.4.39-1"

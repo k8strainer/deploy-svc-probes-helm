@@ -1,0 +1,106 @@
+# Default values for deploy-svc-probes.
+
+replicaCount: 4
+
+nameOverride: ""
+fullnameOverride: ""
+
+labels:
+  tier: www-frontend
+  track: production
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 80
+  # Kubernetes >= 1.31 introduced spec.trafficDistribution (e.g. PreferClose / PreferSameZone / PreferSameNode)
+  # Leave empty to omit the field.
+  trafficDistribution: ""
+  annotations: {}
+  additionalLabels: {}
+
+podAnnotations: {}
+
+readinessGates: []
+# Example for GCE Load Balancer NEGs (enable only if you really have a controller that sets this condition, otherwise Pods may never become Ready)
+# readinessGates:
+#   - cloud.google.com/load-balancer-neg-ready
+
+images:
+  httpd:
+    repository: gcr.io/cluster-01-271319/docker.io/library/httpd
+    tag: 2.4.39-1
+    #tag: latest
+    pullPolicy: IfNotPresent
+  extChecker:
+    repository: registry.access.redhat.com/ubi8/ubi-minimal
+    tag: latest
+    pullPolicy: IfNotPresent
+
+extChecker:
+  # Name override for the ext-checker ConfigMap (leave empty for chart-generated name)
+  configMapName: ""
+  targetUrl: "http://localhost:80"
+  externalUrl: "http://kubernetes.io"
+  command:
+    - sh
+    - -c
+    - while true; do curl $TARGET_URL | grep works; sleep 2; curl $EXTERNAL_URL; sleep 2; done
+  resources:
+    requests:
+      cpu: 100m
+      memory: 50M
+    limits:
+      cpu: 200m
+      memory: 80M
+
+httpd:
+  # Name override for the httpd config ConfigMap (leave empty for chart-generated name)
+  configMapName: ""
+  containerPort: 80
+  resources:
+    requests:
+      cpu: 100m
+      memory: 50M
+    limits:
+      cpu: 500m
+      memory: 100M
+
+  livenessProbe:
+    enabled: true
+    exec:
+      command:
+        - /bin/bash
+        - -c
+        - pidof httpd
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 4
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: 80
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+httpdConf:
+  # If inline is set, it will be used as the ConfigMap's httpd.conf content.
+  # If empty, the chart will use files/httpd.conf.
+  inline: ""
+  mountPath: /usr/local/apache2/conf/httpd.conf
+  subPath: httpd.conf
+
+reloader:
+  # Optional: enable Stakater Reloader annotations (only if you have that controller installed)
+  enabled: false
+  auto: false
+  # Example: "cm-httpd-conf"
+  configmapReload: ""
+  secretReload: ""
