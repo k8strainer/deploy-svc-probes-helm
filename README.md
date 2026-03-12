@@ -1,6 +1,6 @@
 # deploy-svc-probes
 
-This chart is a Helm-ified version of your uploaded manifests:
+This chart is a Helm-ified version of deploy-svc-probes-resources.yaml and included configmaps:
 
 - `deploy-svc-probes-resources.yaml` (Service + Deployment)
 - `cm-deploy-svc-probes.yaml` (ConfigMap `ext-checker-config`)
