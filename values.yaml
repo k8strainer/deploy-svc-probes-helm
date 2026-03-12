@@ -48,7 +48,7 @@ extChecker:
   # Name override for the ext-checker ConfigMap (leave empty for chart-generated name)
   configMapName: ""
   targetUrl: "http://localhost:80"
-  externalUrl: "http://www.google.com"
+  externalUrl: "http://google.com"
   #externalUrl: "http://kubernetes.io"
   
   command:
