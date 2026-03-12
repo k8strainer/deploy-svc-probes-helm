@@ -1,0 +1,15 @@
+{{- if .Values.targetNamespace.create }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Release.Namespace }}
+  labels:
+    argocd.argoproj.io/managed-by: {{ .Values.targetNamespace.managedBy | quote }}
+    {{- with .Values.targetNamespace.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.targetNamespace.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

@@ -1,5 +1,12 @@
 # Default values for deploy-svc-probes.
 
+targetNamespace:
+  create: true
+  managedBy: openshift-gitops
+  additionalLabels: {}
+  annotations: {}
+
+
 replicaCount: 4
 
 nameOverride: ""
