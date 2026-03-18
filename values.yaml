@@ -7,7 +7,7 @@ targetNamespace:
   annotations: {}
 
 
-replicaCount: 4
+replicaCount: 3
 
 nameOverride: ""
 fullnameOverride: ""
